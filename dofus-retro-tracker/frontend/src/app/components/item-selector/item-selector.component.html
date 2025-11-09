@@ -1,0 +1,55 @@
+<div class="item-selector">
+  <div class="search-container">
+    <!-- Category Filter -->
+    <mat-form-field class="category-select">
+      <mat-label>Category</mat-label>
+      <mat-select [formControl]="categoryControl">
+        <mat-option [value]="null">All Categories</mat-option>
+        <mat-option *ngFor="let category of categories()" [value]="category.id">
+          {{ category.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Item Search Autocomplete -->
+    <mat-form-field class="item-search">
+      <mat-label>Search for an item</mat-label>
+      <input
+        type="text"
+        matInput
+        [formControl]="searchControl"
+        [matAutocomplete]="auto"
+        placeholder="Start typing to search..."
+        aria-label="Item search"
+      />
+      @if (isLoading()) {
+        <mat-spinner matSuffix diameter="20"></mat-spinner>
+      }
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        [displayWith]="displayFn"
+        (optionSelected)="onItemSelect($event.option.value)"
+      >
+        @for (item of items(); track item.id) {
+          <mat-option [value]="item">
+            <span class="item-name">{{ item.itemName }}</span>
+            @if (item.category) {
+              <span class="item-category"> - {{ item.category.name }}</span>
+            }
+          </mat-option>
+        }
+        @if (items().length === 0 && searchControl.value && searchControl.value.length >= 2 && !isLoading()) {
+          <mat-option disabled>
+            No items found
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  @if (searchControl.value && searchControl.value.length > 0 && searchControl.value.length < 2) {
+    <div class="search-hint">
+      Please enter at least 2 characters to search
+    </div>
+  }
+</div>

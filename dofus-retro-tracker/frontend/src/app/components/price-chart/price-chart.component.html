@@ -1,0 +1,74 @@
+<mat-card class="price-chart-card">
+  @if (item) {
+    <mat-card-header>
+      <mat-card-title>{{ item.itemName }}</mat-card-title>
+      <mat-card-subtitle>
+        @if (item.category) {
+          {{ item.category.name }}
+        }
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (isLoading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading price data...</p>
+        </div>
+      } @else if (hasError()) {
+        <div class="error-container">
+          <mat-icon color="warn">error</mat-icon>
+          <p>Failed to load price data</p>
+          <button mat-raised-button color="primary" (click)="retry()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        </div>
+      } @else if (priceData().length === 0) {
+        <div class="empty-state">
+          <mat-icon>show_chart</mat-icon>
+          <p>No price data available for this item</p>
+        </div>
+      } @else {
+        <!-- Statistics -->
+        @if (getStats(); as stats) {
+          <div class="stats-container">
+            <div class="stat">
+              <span class="stat-label">Min Price:</span>
+              <span class="stat-value">{{ stats.min.toLocaleString() }} kamas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Max Price:</span>
+              <span class="stat-value">{{ stats.max.toLocaleString() }} kamas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Avg Price:</span>
+              <span class="stat-value">{{ stats.avg.toLocaleString() }} kamas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Data Points:</span>
+              <span class="stat-value">{{ stats.count }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Chart -->
+        <div class="chart-container">
+          <canvas
+            baseChart
+            [data]="chartData"
+            [options]="chartOptions"
+            [type]="'line'"
+          ></canvas>
+        </div>
+      }
+    </mat-card-content>
+  } @else {
+    <mat-card-content>
+      <div class="empty-state">
+        <mat-icon>search</mat-icon>
+        <p>Select an item to view price history</p>
+      </div>
+    </mat-card-content>
+  }
+</mat-card>
