@@ -51,6 +51,18 @@ management:
       prometheus:
         enabled: true
 
+# Packet Capture Configuration
+packet:
+  capture:
+    enabled: true
+    dofus-port: 5555
+    network-interface: null  # Auto-detect
+    snap-len: 65536
+    timeout: 1000
+    queue-capacity: 1000
+    queue-timeout: 100
+    promiscuous-mode: false
+
 # Application-specific Configuration
 dofus:
   retro:
