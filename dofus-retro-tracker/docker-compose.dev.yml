@@ -1,0 +1,58 @@
+version: '3.8'
+
+# Development Override Configuration
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: dofus_password  # Simple password for dev
+    ports:
+      - "5432:5432"  # Expose port for local development tools
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build  # Use build stage for faster rebuilds
+    image: dofus-retro-tracker:dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://postgres:5432/dofus_retro_db
+      DB_USERNAME: dofus
+      DB_PASSWORD: dofus_password
+      DB_POOL_MAX_SIZE: 5
+      DB_POOL_MIN_IDLE: 2
+      LOG_FILE: /app/logs/application.log
+      PACKET_CAPTURE_ENABLED: false
+      GUI_AUTOMATION_ENABLED: false
+      CACHE_TYPE: caffeine
+    volumes:
+      # Mount source for hot-reload (if using spring-boot-devtools)
+      - ./src:/app/src
+      - ./target:/app/target
+      - app-logs:/app/logs
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+    command: >
+      sh -c "java
+      -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      -Xms256m
+      -Xmx512m
+      -XX:+UseG1GC
+      -jar /app/app.jar"
+    restart: "no"  # Don't auto-restart in dev mode
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # Enable pgAdmin in development
+  pgadmin:
+    profiles: []  # Remove profile restriction
+
+volumes:
+  app-logs:
+    name: dofus-retro-app-logs-dev

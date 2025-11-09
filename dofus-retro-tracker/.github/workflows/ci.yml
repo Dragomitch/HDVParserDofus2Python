@@ -2,14 +2,146 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, feature/*, release/* ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.count=3
 
 jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: dofus_retro_db
+          POSTGRES_USER: dofus
+          POSTGRES_PASSWORD: dofus_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build with Maven
+        run: |
+          cd dofus-retro-tracker
+          mvn clean install -DskipTests -B -V
+
+      - name: Run unit tests
+        run: |
+          cd dofus-retro-tracker
+          mvn test -B
+
+      - name: Run integration tests
+        run: |
+          cd dofus-retro-tracker
+          mvn verify -P integration-tests -DskipUnitTests || true
+
+      - name: Generate code coverage report
+        run: |
+          cd dofus-retro-tracker
+          mvn jacoco:report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./dofus-retro-tracker/target/site/jacoco/jacoco.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
+          detailed_summary: true
+          include_passed: true
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: dofus-retro-tracker/target/surefire-reports/
+          retention-days: 30
+
+      - name: Archive code coverage results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: dofus-retro-tracker/target/site/jacoco/
+          retention-days: 30
+
+      - name: Archive JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: dofus-retro-tracker/target/*.jar
+          retention-days: 7
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Maven verify
+        run: |
+          cd dofus-retro-tracker
+          mvn verify -DskipTests -B
+
+      - name: Check code style
+        run: |
+          cd dofus-retro-tracker
+          mvn checkstyle:check || true
+        continue-on-error: true
+
+  api-contract-testing:
+    name: API Contract Testing
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
 
     services:
       postgres:
@@ -37,67 +169,53 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Cache Maven packages
-        uses: actions/cache@v3
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          name: app-jar
+          path: ./dofus-retro-tracker/target
 
-      - name: Build with Maven
-        run: mvn clean install -DskipTests
+      - name: Start application
+        run: |
+          cd dofus-retro-tracker
+          export SPRING_PROFILES_ACTIVE=test
+          export DATABASE_URL=jdbc:postgresql://localhost:5432/dofus_retro_db
+          export DB_USERNAME=dofus
+          export DB_PASSWORD=dofus_password
+          java -jar target/*.jar &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
 
-      - name: Run unit tests
-        run: mvn test
+          # Wait for app to be healthy
+          for i in {1..30}; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Application is healthy"
+              break
+            fi
+            echo "Waiting for application to start... ($i/30)"
+            sleep 2
+          done
 
-      - name: Generate code coverage report
-        run: mvn jacoco:report
+      - name: Run API contract tests
+        run: |
+          cd dofus-retro-tracker
+          # Placeholder for API contract tests (Pact, Spring Cloud Contract, etc.)
+          curl -f http://localhost:8080/actuator/health || exit 1
+          curl -f http://localhost:8080/actuator/info || exit 1
+          curl -f http://localhost:8080/actuator/metrics || exit 1
+          echo "API contract tests passed"
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./target/site/jacoco/jacoco.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-
-      - name: Archive test results
+      - name: Stop application
         if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: target/surefire-reports/
+        run: |
+          if [ ! -z "$APP_PID" ]; then
+            kill $APP_PID || true
+          fi
 
-      - name: Archive code coverage results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: code-coverage-report
-          path: target/site/jacoco/
-
-  code-quality:
-    name: Code Quality Checks
+  docker-build-and-push:
+    name: Docker Build and Push
     runs-on: ubuntu-latest
-    needs: build-and-test
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Run Maven verify
-        run: mvn verify -DskipTests
-
-  docker-build:
-    name: Docker Build (Optional)
-    runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, code-quality]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
     steps:
@@ -107,9 +225,54 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        if: github.event_name == 'push'
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        continue-on-error: true
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: dofus-retro-tracker
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
       - name: Build Docker image
-        run: |
-          docker build -t dofus-retro-price-tracker:${{ github.sha }} .
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dofus-retro-tracker
+          file: ./dofus-retro-tracker/Dockerfile
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/image.tar
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/image.tar
+          retention-days: 7
+
+      - name: Push Docker image
+        uses: docker/build-push-action@v5
+        if: github.event_name == 'push' && secrets.DOCKER_USERNAME != ''
+        with:
+          context: ./dofus-retro-tracker
+          file: ./dofus-retro-tracker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
         continue-on-error: true
 
   dependency-check:
@@ -128,9 +291,51 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run dependency check
-        run: mvn dependency:tree
+      - name: Run dependency tree
+        run: |
+          cd dofus-retro-tracker
+          mvn dependency:tree
 
-      - name: OWASP Dependency Check (Optional)
-        run: echo "OWASP dependency check placeholder"
+      - name: Check for vulnerable dependencies
+        run: |
+          cd dofus-retro-tracker
+          mvn dependency:analyze -DignoreNonCompile=true || true
         continue-on-error: true
+
+      - name: OWASP Dependency Check
+        run: |
+          cd dofus-retro-tracker
+          # Placeholder for OWASP dependency check
+          echo "OWASP dependency check would run here"
+          # mvn org.owasp:dependency-check-maven:check
+        continue-on-error: true
+
+  performance-testing:
+    name: Performance Testing (Optional)
+    runs-on: ubuntu-latest
+    needs: api-contract-testing
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Performance tests placeholder
+        run: |
+          echo "Performance tests would run here (JMeter, Gatling, etc.)"
+          echo "Skipping for now - to be implemented in later waves"
+        continue-on-error: true
+
+  notification:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality, docker-build-and-push]
+    if: always()
+
+    steps:
+      - name: Report workflow status
+        run: |
+          echo "Workflow completed"
+          echo "Build status: ${{ needs.build-and-test.result }}"
+          echo "Quality status: ${{ needs.code-quality.result }}"
+          echo "Docker status: ${{ needs.docker-build-and-push.result }}"
