@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 16 Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: dofus-retro-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dofus_retro_db}
+      POSTGRES_USER: ${POSTGRES_USER:-dofus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dofus_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dofus} -d ${POSTGRES_DB:-dofus_retro_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - dofus-network
+
+  # pgAdmin - Optional web-based database management tool
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dofus-retro-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@dofusretro.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dofus-network
+    profiles:
+      - tools
+
+volumes:
+  postgres-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+
+networks:
+  dofus-network:
+    driver: bridge
