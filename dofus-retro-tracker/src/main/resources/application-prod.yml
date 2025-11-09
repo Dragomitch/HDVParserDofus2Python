@@ -1,0 +1,91 @@
+# Production Profile Configuration
+# Active when: --spring.profiles.active=prod
+
+spring:
+  # Production Database Configuration (via environment variables)
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/dofus_retro_db}
+    username: ${DB_USERNAME:dofus}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  # JPA Production Settings
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        generate_statistics: false
+
+  # Flyway Production Settings
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
+
+  # Production Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=3600s
+
+# Production Logging Configuration
+logging:
+  level:
+    root: WARN
+    com.dofusretro: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  file:
+    name: /var/log/dofus-retro-tracker/application.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB
+
+# Production Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: always
+  compression:
+    enabled: true
+
+# Production Actuator Configuration
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+# Production-specific Application Configuration
+dofus:
+  retro:
+    tracker:
+      packet-capture:
+        enabled: ${PACKET_CAPTURE_ENABLED:true}
+        interface: ${NETWORK_INTERFACE:eth0}
+        filter: "tcp port 5555"
+      gui-automation:
+        enabled: ${GUI_AUTOMATION_ENABLED:false}
+        debug-mode: false
+      cache:
+        ttl: ${CACHE_TTL:3600}
+        max-size: ${CACHE_MAX_SIZE:10000}

@@ -1,0 +1,41 @@
+# Test Profile Configuration
+# Used for unit and integration tests
+
+spring:
+  # Use H2 in-memory database for tests
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA Test Settings
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # Flyway disabled for tests (use ddl-auto instead)
+  flyway:
+    enabled: false
+
+# Logging for tests
+logging:
+  level:
+    root: WARN
+    com.dofusretro: DEBUG
+    org.springframework: WARN
+    org.hibernate: WARN
+
+# Test-specific application configuration
+dofus:
+  retro:
+    tracker:
+      packet-capture:
+        enabled: false
+      gui-automation:
+        enabled: false
