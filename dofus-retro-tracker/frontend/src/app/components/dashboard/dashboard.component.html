@@ -1,0 +1,76 @@
+<div class="dashboard">
+  <!-- Header -->
+  <mat-toolbar color="primary" class="dashboard-header">
+    <mat-icon class="header-icon">show_chart</mat-icon>
+    <span class="header-title">Dofus Retro Price Tracker</span>
+    <span class="spacer"></span>
+    @if (selectedItem()) {
+      <button mat-icon-button (click)="clearSelection()" aria-label="Clear selection">
+        <mat-icon>clear</mat-icon>
+      </button>
+    }
+  </mat-toolbar>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <div class="container">
+      <!-- Item Selection Section -->
+      <section class="selection-section">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>search</mat-icon>
+              Find an Item
+            </mat-card-title>
+            <mat-card-subtitle>
+              Search for Dofus items to view their auction house price history
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <app-item-selector (itemSelected)="onItemSelected($event)"></app-item-selector>
+          </mat-card-content>
+        </mat-card>
+      </section>
+
+      <!-- Price Chart Section -->
+      <section class="chart-section">
+        <app-price-chart [item]="selectedItem()"></app-price-chart>
+      </section>
+
+      <!-- Info Section -->
+      @if (!selectedItem()) {
+        <section class="info-section">
+          <mat-card>
+            <mat-card-content>
+              <div class="info-content">
+                <mat-icon color="primary">info</mat-icon>
+                <div class="info-text">
+                  <h3>How to use this tracker</h3>
+                  <ol>
+                    <li>Use the search box above to find an item</li>
+                    <li>Optionally filter by category</li>
+                    <li>Select an item from the autocomplete dropdown</li>
+                    <li>View the price history chart with statistics</li>
+                  </ol>
+                  <p class="note">
+                    Price data is collected from the Dofus Retro auction house and updated regularly.
+                  </p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </section>
+      }
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="dashboard-footer">
+    <div class="footer-content">
+      <p>Dofus Retro Price Tracker &copy; {{ currentYear }}</p>
+      <p class="footer-note">
+        Price data is for informational purposes only. Not affiliated with Ankama.
+      </p>
+    </div>
+  </footer>
+</div>
