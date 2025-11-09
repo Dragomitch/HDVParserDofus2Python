@@ -1,0 +1,132 @@
+# Development Profile Configuration
+# Active when: --spring.profiles.active=dev
+
+spring:
+  # Development Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dofus_retro_db
+    username: dofus
+    password: dofus_password
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Development Settings
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        generate_statistics: true
+
+  # Flyway Development Settings
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  # Development Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=600s
+
+# Development Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.dofusretro: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.data: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Development Server Configuration
+server:
+  error:
+    include-stacktrace: always
+
+# Development Actuator Configuration
+management:
+  endpoint:
+    health:
+      show-details: always
+
+# Development Packet Capture Configuration
+packet:
+  capture:
+    enabled: true
+    dofus-port: 5555
+    network-interface: null  # Auto-detect (use lo for localhost testing)
+    snap-len: 65536
+    timeout: 1000
+    queue-capacity: 1000
+    queue-timeout: 100
+    promiscuous-mode: false
+
+# Development-specific Application Configuration
+dofus:
+  retro:
+    tracker:
+      # Packet Capture - Development Settings
+      packet-capture:
+        enabled: false  # Disabled by default (requires sudo/admin)
+        network-interface: lo  # Loopback for development
+        filter: "tcp port 5555"
+
+      # GUI Automation - Development Settings
+      gui-automation:
+        enabled: false  # Disabled by default in development
+        debug-mode: true
+
+      # Cache - Development Settings (shorter TTLs for testing)
+      cache:
+        enabled: true
+        type: caffeine
+        ttl: 600  # 10 minutes for development
+        max-size: 1000
+        items:
+          ttl: 1800  # 30 minutes
+          max-size: 500
+        latest-prices:
+          ttl: 60  # 1 minute (very short for testing)
+          max-size: 1000
+        monitoring:
+          enabled: true
+          log-stats: true
+          interval-ms: 60000  # Log every minute in dev
+          hit-rate-warning-threshold: 0.5
+        cleanup:
+          interval-ms: 600000  # 10 minutes
+
+      # Consumer - Development Settings
+      consumer:
+        batch-size: 5
+        poll-timeout-ms: 500
+        circuit-breaker:
+          failure-threshold: 3
+          reset-timeout-ms: 30000  # 30 seconds
+
+      # Packet Processing - Development Settings
+      packet-processing:
+        enabled: true
+        interval-ms: 2000  # Slower processing in dev (every 2 seconds)
+        batch-mode: true
+        log-stats: true
+        queue-warning-threshold: 100
+
+      # Executor - Development Settings (smaller thread pool)
+      executor:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 50
+        thread-name-prefix: "DofusRetro-Dev-"
+        await-termination-seconds: 30

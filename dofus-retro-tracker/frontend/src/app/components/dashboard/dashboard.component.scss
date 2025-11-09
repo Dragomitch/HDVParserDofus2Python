@@ -1,0 +1,184 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+// Header
+.dashboard-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .header-icon {
+    margin-right: 0.5rem;
+  }
+
+  .header-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+
+    @media (max-width: 600px) {
+      font-size: 1rem;
+    }
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+}
+
+// Content
+.dashboard-content {
+  flex: 1;
+  padding: 2rem 1rem;
+
+  @media (max-width: 600px) {
+    padding: 1rem 0.5rem;
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Sections
+.selection-section,
+.chart-section,
+.info-section {
+  margin-bottom: 2rem;
+
+  mat-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+
+    mat-card-header {
+      margin-bottom: 1rem;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 500;
+      }
+
+      mat-card-subtitle {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+}
+
+// Info Section
+.info-content {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .info-text {
+    h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    ol {
+      margin: 0 0 1rem 0;
+      padding-left: 1.5rem;
+
+      @media (max-width: 600px) {
+        padding-left: 1rem;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    .note {
+      margin: 0;
+      padding: 0.75rem;
+      background-color: rgba(0, 0, 0, 0.02);
+      border-radius: 4px;
+      font-size: 0.875rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+// Footer
+.dashboard-footer {
+  background-color: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 1.5rem 1rem;
+  margin-top: auto;
+
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+
+    p {
+      margin: 0.25rem 0;
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    .footer-note {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .dashboard {
+    background-color: #303030;
+  }
+
+  .info-content {
+    .info-text {
+      .note {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+
+  .dashboard-footer {
+    background-color: #424242;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+
+    .footer-content {
+      p {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+}
+
+// Accessibility
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

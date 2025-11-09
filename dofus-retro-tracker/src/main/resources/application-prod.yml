@@ -1,0 +1,121 @@
+# Production Profile Configuration
+# Active when: --spring.profiles.active=prod
+
+spring:
+  # Production Database Configuration (via environment variables)
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/dofus_retro_db}
+    username: ${DB_USERNAME:dofus}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:10}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      pool-name: DofusRetroHikariPool
+      connection-test-query: SELECT 1
+      auto-commit: true
+      keepalive-time: 300000
+
+  # JPA Production Settings
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        generate_statistics: false
+
+  # Flyway Production Settings
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
+
+  # Production Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=3600s
+
+# Production Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.dofusretro: INFO
+    com.dofusretro.pricetracker.service: INFO
+    com.dofusretro.pricetracker.controller: INFO
+    org.springframework: WARN
+    org.springframework.web: INFO
+    org.hibernate: WARN
+    com.zaxxer.hikari: INFO
+  file:
+    name: ${LOG_FILE:/var/log/dofus-retro-tracker/application.log}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB
+      file-name-pattern: ${LOG_FILE:/var/log/dofus-retro-tracker/application.log}.%d{yyyy-MM-dd}.%i.gz
+
+# Production Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: always
+  compression:
+    enabled: true
+
+# Production Actuator Configuration
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+# Production Packet Capture Configuration
+packet:
+  capture:
+    enabled: ${PACKET_CAPTURE_ENABLED:true}
+    dofus-port: ${DOFUS_PORT:5555}
+    network-interface: ${NETWORK_INTERFACE:}
+    snap-len: ${SNAP_LEN:65536}
+    timeout: ${CAPTURE_TIMEOUT:1000}
+    queue-capacity: ${QUEUE_CAPACITY:1000}
+    queue-timeout: ${QUEUE_TIMEOUT:100}
+    promiscuous-mode: ${PROMISCUOUS_MODE:false}
+
+# Production-specific Application Configuration
+dofus:
+  retro:
+    tracker:
+      packet-capture:
+        enabled: ${PACKET_CAPTURE_ENABLED:true}
+        network-interface: ${NETWORK_INTERFACE:eth0}
+        filter: "tcp port 5555"
+      gui-automation:
+        enabled: ${GUI_AUTOMATION_ENABLED:false}
+        debug-mode: false
+        screenshot-interval: ${GUI_SCREENSHOT_INTERVAL:5000}
+      cache:
+        enabled: ${CACHE_ENABLED:true}
+        type: ${CACHE_TYPE:caffeine}
+        ttl: ${CACHE_TTL:3600}
+        max-size: ${CACHE_MAX_SIZE:10000}
+        redis:
+          host: ${REDIS_HOST:redis}
+          port: ${REDIS_PORT:6379}
+          password: ${REDIS_PASSWORD:}
+          database: ${REDIS_DATABASE:0}
+          timeout: ${REDIS_TIMEOUT:5000}

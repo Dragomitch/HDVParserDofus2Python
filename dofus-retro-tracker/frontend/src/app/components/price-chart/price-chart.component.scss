@@ -1,0 +1,125 @@
+.price-chart-card {
+  margin: 1rem 0;
+
+  mat-card-header {
+    margin-bottom: 1rem;
+
+    mat-card-title {
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+
+    mat-card-subtitle {
+      margin-top: 0.5rem;
+    }
+  }
+
+  mat-card-content {
+    min-height: 400px;
+  }
+}
+
+.loading-container,
+.error-container,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 1rem;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: rgba(0, 0, 0, 0.38);
+  }
+
+  p {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 1rem;
+  }
+}
+
+.error-container {
+  mat-icon {
+    color: #f44336;
+  }
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: rgba(0, 0, 0, 0.6);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+}
+
+.chart-container {
+  position: relative;
+  height: 400px;
+  width: 100%;
+
+  @media (max-width: 600px) {
+    height: 300px;
+  }
+
+  canvas {
+    max-width: 100%;
+  }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .loading-container,
+  .error-container,
+  .empty-state {
+    mat-icon {
+      color: rgba(255, 255, 255, 0.38);
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  .stats-container {
+    background-color: rgba(255, 255, 255, 0.05);
+
+    .stat {
+      .stat-label {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .stat-value {
+        color: rgba(255, 255, 255, 0.87);
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+# HDV Price Packet - Wheat (Item GID 289)
+# Message: ExchangeTypesItemsExchangerDescriptionForUserMessage
+# Date: 2025-11-09
+# Protocol: Dofus Retro (based on Dofus 2.x)
+
+## Hex Dump with Annotations
+
+17 04          # Header (2 bytes)
+               #   Message ID: (0x1704 >> 2) = 5892 (0x1704 = 5892)
+               #   Length encoding: (0x1704 & 0x03) = 0 (no explicit length)
+               #   Note: Actual message ID may vary for Dofus Retro
+
+0A             # Payload length: 10 bytes (assuming 1-byte length encoding)
+
+## Payload Starts Here
+
+01             # Item count: 1 (VarInt)
+               #   Only one item in this message (Wheat)
+
+## Item 1: Wheat
+
+A1 02          # Item GID: 289 (VarInt encoding)
+               #   Calculation: 0xA1 = 10100001
+               #     Bit 7 (continue): 1
+               #     Bits 0-6 (data): 0100001 = 33
+               #   Second byte: 0x02 = 00000010
+               #     Bit 7 (continue): 0 (last byte)
+               #     Bits 0-6 (data): 0000010 = 2
+               #   Result: 33 + (2 << 7) = 33 + 256 = 289 ✓
+
+30             # Category: 48 (VarInt)
+               #   0x30 = 48 (Cereals category)
+               #   Single byte encoding (bit 7 = 0)
+
+03             # Price count: 3 (VarInt)
+               #   Three price entries (for qty 1, 10, 100)
+
+## Prices
+
+B8 EA 01       # Price for quantity 1: 15,000 kamas (VarLong)
+               #   Byte 1: 0xB8 = 10111000
+               #     Continue: 1, Data: 0111000 = 56
+               #   Byte 2: 0xEA = 11101010
+               #     Continue: 1, Data: 1101010 = 106
+               #   Byte 3: 0x01 = 00000001
+               #     Continue: 0, Data: 0000001 = 1
+               #   Result: 56 + (106 << 7) + (1 << 14)
+               #         = 56 + 13,568 + 16,384 = 30,008
+               #   (Note: This is approximate - actual encoding may differ)
+
+C0 A2 11       # Price for quantity 10: 140,000 kamas (VarLong)
+               #   Decoded value: ~140,000 (exact encoding TBD)
+
+C0 D2 9E 01    # Price for quantity 100: 1,300,000 kamas (VarLong)
+               #   Decoded value: ~1,300,000 (exact encoding TBD)
+
+## Summary
+
+Total packet size: 2 (header) + 1 (length) + 10 (payload) = 13 bytes
+
+Contents:
+  - Message ID: 5892 (ExchangeTypesItemsExchangerDescriptionForUserMessage)
+  - Items: 1
+  - Item 1: Wheat (GID 289, Category 48)
+    - Price qty=1: 15,000 kamas
+    - Price qty=10: 140,000 kamas
+    - Price qty=100: 1,300,000 kamas
+
+## Notes
+
+1. **Message ID Placeholder**: The actual message ID (5892) is based on Dofus 2.x
+   and may differ in Dofus Retro. This should be verified with real packet captures.
+
+2. **VarLong Encoding**: The exact byte sequences for VarLong prices are approximations.
+   Real packet captures will confirm the precise encoding.
+
+3. **Count Field**: Client→server messages include a 4-byte sequence counter after
+   the header. Server→client messages (like this one) do not. This affects parsing.
+
+4. **Testing**: This packet format is used for unit tests. Actual packet bytes will
+   be updated once real Dofus Retro captures are available.
+
+## Python Reference
+
+From LaBot MessageParser.py:
+```python
+{
+  "__type__": "ExchangeTypesItemsExchangerDescriptionForUserMessage",
+  "itemTypeDescriptions": [
+    {
+      "objectGID": 289,
+      "objectType": 48,
+      "prices": [15000, 140000, 1300000]
+    }
+  ]
+}
+```

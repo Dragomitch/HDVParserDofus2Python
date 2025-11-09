@@ -1,0 +1,157 @@
+# Base Application Configuration
+# This file contains common configuration shared across all profiles
+
+spring:
+  application:
+    name: dofus-retro-price-tracker
+
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Use Flyway for schema management
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Jackson JSON Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+    default-property-inclusion: non_null
+
+# Server Configuration
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true  # Enable liveness and readiness probes
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:default}
+
+# Packet Capture Configuration
+packet:
+  capture:
+    enabled: true
+    dofus-port: 5555
+    network-interface: null  # Auto-detect
+    snap-len: 65536
+    timeout: 1000
+    queue-capacity: 1000
+    queue-timeout: 100
+    promiscuous-mode: false
+
+# Application-specific Configuration
+dofus:
+  retro:
+    tracker:
+      version: 0.1.0
+
+      # Packet Capture Configuration
+      packet-capture:
+        enabled: true
+        network-interface: eth0
+        filter: "tcp port 5555"
+
+      # GUI Automation Configuration
+      gui-automation:
+        enabled: false
+        screenshot-interval: 5000
+        debug-mode: false
+
+      # Cache Configuration (Caffeine)
+      cache:
+        enabled: true
+        type: caffeine
+        ttl: 3600  # Default TTL in seconds
+        max-size: 10000  # Default max cache size
+
+        # Item cache settings (longer TTL, items change infrequently)
+        items:
+          ttl: 7200  # 2 hours
+          max-size: 5000
+
+        # Latest prices cache (shorter TTL, prices change frequently)
+        latest-prices:
+          ttl: 300  # 5 minutes
+          max-size: 10000
+
+        # Cache monitoring
+        monitoring:
+          enabled: true
+          log-stats: true
+          interval-ms: 300000  # 5 minutes
+          hit-rate-warning-threshold: 0.5
+
+        # Cache cleanup
+        cleanup:
+          interval-ms: 3600000  # 1 hour
+
+      # Packet Consumer Configuration
+      consumer:
+        batch-size: 10
+        poll-timeout-ms: 1000
+        circuit-breaker:
+          failure-threshold: 5
+          reset-timeout-ms: 60000  # 1 minute
+
+      # Packet Processing Task Configuration
+      packet-processing:
+        enabled: true
+        interval-ms: 1000  # Run every second
+        batch-mode: true
+        log-stats: true
+        queue-warning-threshold: 500
+
+      # Task Executor Configuration
+      executor:
+        core-pool-size: 2
+        max-pool-size: 4
+        queue-capacity: 100
+        thread-name-prefix: "DofusRetro-"
+        await-termination-seconds: 30
+
+# Spring DataSource Configuration
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: DofusRetroHikariPool
+      auto-commit: true
+      connection-test-query: SELECT 1
