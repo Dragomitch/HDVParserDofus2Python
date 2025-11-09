@@ -60,6 +60,18 @@ management:
     health:
       show-details: always
 
+# Development Packet Capture Configuration
+packet:
+  capture:
+    enabled: true
+    dofus-port: 5555
+    network-interface: null  # Auto-detect (use lo for localhost testing)
+    snap-len: 65536
+    timeout: 1000
+    queue-capacity: 1000
+    queue-timeout: 100
+    promiscuous-mode: false
+
 # Development-specific Application Configuration
 dofus:
   retro:
