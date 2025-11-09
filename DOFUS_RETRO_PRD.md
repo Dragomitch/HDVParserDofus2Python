@@ -39,7 +39,7 @@ The existing Python-based system successfully monitors Dofus 2 auction house pri
 - Network packet sniffing and parsing
 - GUI automation for data collection
 - SQLite database storage
-- React-based web visualization
+- Angular 20-based web visualization
 
 This project aims to port and enhance this functionality for Dofus Retro while leveraging Java ecosystem best practices.
 
@@ -90,7 +90,7 @@ The existing system consists of **3 decoupled modules** communicating via thread
 
 #### **Module 4: Visualization**
 - **Backend:** Flask REST API
-- **Frontend:** React + TypeScript, react-timeseries-charts
+- **Frontend:** Angular 20 + TypeScript, Angular Material, Chart.js/D3.js
 - **Endpoints:**
   - `/ping` - Health check
   - `/items_list` - All items for dropdown
@@ -105,7 +105,7 @@ The existing system consists of **3 decoupled modules** communicating via thread
 | GUI Automation | PyAutoGUI + OpenCV | ~267 lines |
 | Database | SQLAlchemy + SQLite | ~156 lines |
 | API Server | Flask | 31 lines |
-| Frontend | React 16.13 | ~500 lines |
+| Frontend | Angular 20 | ~500 lines |
 | Threading | Python threading + Queue | ~36 lines |
 
 ### 2.3 Data Flow
@@ -119,7 +119,7 @@ The existing system consists of **3 decoupled modules** communicating via thread
        ↑                    ↓
 [Pixel Module]         [Flask API]
                             ↓
-                      [React Frontend]
+                      [Angular 20 Frontend]
 ```
 
 ### 2.4 Current System Strengths
@@ -272,7 +272,7 @@ The existing system consists of **3 decoupled modules** communicating via thread
 | Database | ✅ SQLite | ✅ PostgreSQL / H2 | CRITICAL |
 | ORM | ✅ SQLAlchemy | ✅ JPA / Hibernate | CRITICAL |
 | REST API | ✅ Flask | ✅ Spring Boot REST | HIGH |
-| Frontend | ✅ React | ⚠️ Thymeleaf / React | MEDIUM |
+| Frontend | ✅ Angular 20 | ✅ Angular 20 | HIGH - Latest framework |
 | Threading | ✅ Python threads | ✅ ExecutorService | CRITICAL |
 | Caching | ✅ Manual dict | ✅ Spring Cache / Caffeine | HIGH |
 | Image Recognition | ✅ OpenCV | ✅ JavaCV / Sikuli | HIGH |
@@ -1425,7 +1425,7 @@ The following features are explicitly **NOT** included in this project:
 - Kafka for event streaming
 
 **Frontend:**
-- React dashboard with recharts
+- Angular 20 dashboard with Angular Material and Chart.js
 - Filter by price range
 - Export to Excel/CSV
 - Responsive mobile design
