@@ -75,6 +75,18 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 
+# Production Packet Capture Configuration
+packet:
+  capture:
+    enabled: ${PACKET_CAPTURE_ENABLED:true}
+    dofus-port: ${DOFUS_PORT:5555}
+    network-interface: ${NETWORK_INTERFACE:}
+    snap-len: ${SNAP_LEN:65536}
+    timeout: ${CAPTURE_TIMEOUT:1000}
+    queue-capacity: ${QUEUE_CAPACITY:1000}
+    queue-timeout: ${QUEUE_TIMEOUT:100}
+    promiscuous-mode: ${PROMISCUOUS_MODE:false}
+
 # Production-specific Application Configuration
 dofus:
   retro:
