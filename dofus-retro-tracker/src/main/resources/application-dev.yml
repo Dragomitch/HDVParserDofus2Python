@@ -76,10 +76,57 @@ packet:
 dofus:
   retro:
     tracker:
+      # Packet Capture - Development Settings
       packet-capture:
-        enabled: true
-        interface: lo  # Loopback for development
+        enabled: false  # Disabled by default (requires sudo/admin)
+        network-interface: lo  # Loopback for development
         filter: "tcp port 5555"
+
+      # GUI Automation - Development Settings
       gui-automation:
         enabled: false  # Disabled by default in development
         debug-mode: true
+
+      # Cache - Development Settings (shorter TTLs for testing)
+      cache:
+        enabled: true
+        type: caffeine
+        ttl: 600  # 10 minutes for development
+        max-size: 1000
+        items:
+          ttl: 1800  # 30 minutes
+          max-size: 500
+        latest-prices:
+          ttl: 60  # 1 minute (very short for testing)
+          max-size: 1000
+        monitoring:
+          enabled: true
+          log-stats: true
+          interval-ms: 60000  # Log every minute in dev
+          hit-rate-warning-threshold: 0.5
+        cleanup:
+          interval-ms: 600000  # 10 minutes
+
+      # Consumer - Development Settings
+      consumer:
+        batch-size: 5
+        poll-timeout-ms: 500
+        circuit-breaker:
+          failure-threshold: 3
+          reset-timeout-ms: 30000  # 30 seconds
+
+      # Packet Processing - Development Settings
+      packet-processing:
+        enabled: true
+        interval-ms: 2000  # Slower processing in dev (every 2 seconds)
+        batch-mode: true
+        log-stats: true
+        queue-warning-threshold: 100
+
+      # Executor - Development Settings (smaller thread pool)
+      executor:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 50
+        thread-name-prefix: "DofusRetro-Dev-"
+        await-termination-seconds: 30

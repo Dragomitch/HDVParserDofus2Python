@@ -1,42 +1,45 @@
 package com.dofusretro.pricetracker.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * Data Transfer Object for SubCategory entity.
- * Used for API responses to transfer category data without exposing JPA entities.
+ * Note: Named CategoryDTO for API simplicity, but represents SubCategory entity.
  *
- * @author AGENT-DATA
+ * @author AGENT-API
  * @version 1.0
- * @since Wave 1
+ * @since Wave 2
  */
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Represents a Dofus item sub-category grouping related items")
 public class CategoryDTO {
 
-    /**
-     * Internal database ID.
-     */
+    @Schema(description = "Unique identifier", example = "1")
     private Long id;
 
-    /**
-     * The Dofus game's unique identifier for this sub-category.
-     */
+    @Schema(description = "Dofus game category identifier", example = "100")
     private Integer dofusId;
 
-    /**
-     * Human-readable name of the sub-category (e.g., "Cereals", "Fish").
-     */
+    @Schema(description = "Category name", example = "Cereals")
     private String name;
 
-    /**
-     * Number of items in this category.
-     * Useful for displaying category statistics.
-     */
+    @Schema(description = "Timestamp when this record was created")
+    private LocalDateTime createdAt;
+
+    @Schema(description = "Timestamp when this record was last updated")
+    private LocalDateTime updatedAt;
+
+    @Schema(description = "Number of items in this category (optional)")
     private Long itemCount;
 }

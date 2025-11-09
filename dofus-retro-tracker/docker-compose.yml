@@ -1,7 +1,12 @@
 version: '3.8'
 
+# Dofus Retro Price Tracker - Docker Compose
+# Wave 2 - Enhanced infrastructure with application service
+
 services:
+  # =============================================================================
   # PostgreSQL 16 Database
+  # =============================================================================
   postgres:
     image: postgres:16-alpine
     container_name: dofus-retro-db
@@ -11,7 +16,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dofus_password}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -19,11 +24,104 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
     networks:
       - dofus-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
-  # pgAdmin - Optional web-based database management tool
+  # =============================================================================
+  # Spring Boot Application
+  # =============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dofus-retro-tracker:latest
+    container_name: dofus-retro-app
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-dofus_retro_db}
+      DB_USERNAME: ${POSTGRES_USER:-dofus}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-dofus_password}
+      DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-20}
+      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-10}
+      LOG_FILE: /app/logs/application.log
+      # Cache configuration
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
+      CACHE_TYPE: ${CACHE_TYPE:-caffeine}
+      # Packet capture configuration
+      PACKET_CAPTURE_ENABLED: ${PACKET_CAPTURE_ENABLED:-false}
+      NETWORK_INTERFACE: ${NETWORK_INTERFACE:-eth0}
+      # GUI automation configuration
+      GUI_AUTOMATION_ENABLED: ${GUI_AUTOMATION_ENABLED:-false}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - app-logs:/app/logs
+      - app-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - dofus-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1.5G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # =============================================================================
+  # Redis Cache (Optional - for distributed caching)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: dofus-retro-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - dofus-network
+    profiles:
+      - redis
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # =============================================================================
+  # pgAdmin - Database Management Tool (Optional)
+  # =============================================================================
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: dofus-retro-pgadmin
@@ -32,7 +130,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT:-5050}:80"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
@@ -47,9 +145,21 @@ services:
 volumes:
   postgres-data:
     driver: local
+    name: dofus-retro-postgres-data
+  redis-data:
+    driver: local
+    name: dofus-retro-redis-data
   pgadmin-data:
     driver: local
+    name: dofus-retro-pgadmin-data
+  app-logs:
+    driver: local
+    name: dofus-retro-app-logs
+  app-data:
+    driver: local
+    name: dofus-retro-app-data
 
 networks:
   dofus-network:
     driver: bridge
+    name: dofus-retro-network

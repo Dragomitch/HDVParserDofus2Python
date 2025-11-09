@@ -33,7 +33,7 @@
 | 🌐 AGENT-API | ✅ **KEEP** | REST controllers, API design |
 | 🧪 AGENT-TEST | ✅ **KEEP** | Unit + integration testing |
 | 📚 AGENT-DOCS | ✅ **KEEP** | Documentation throughout project |
-| 🖥️ AGENT-FRONT | ✅ **ADD** | Frontend visualization (React) - significant scope |
+| 🖥️ AGENT-FRONT | ✅ **ADD** | Frontend visualization (Angular 20) - significant scope |
 | ☕ AGENT-BACK | ❌ **REMOVE** | Redundant: DATA + BUSINESS + API cover all backend |
 | 👓 AGENT-REVIEW | ✅ **ADD** | **CRITICAL**: Quality gates, code review, acceptance validation |
 
@@ -79,20 +79,20 @@
 
 #### Profile
 
-**Expertise:** React, TypeScript, data visualization, REST API integration
+**Expertise:** Angular 20, TypeScript, data visualization, REST API integration
 **Responsibilities:**
-- React component development
+- Angular component development
 - Time-series chart implementation
 - API client integration
 - Responsive UI design
 - State management
-**Key Skills:** React 18+, TypeScript, Recharts/D3.js, Axios, React Router
+**Key Skills:** Angular 20, TypeScript, Angular Material, Chart.js/D3.js, HttpClient, Angular Router
 **Works Best With:** AGENT-API (consumes REST endpoints)
 
 #### Scope
 
 **Primary Tasks:**
-- Design and implement React frontend
+- Design and implement Angular 20 frontend
 - Create price visualization charts (time-series)
 - Implement item search/filter interface
 - Connect to backend REST API
@@ -439,7 +439,7 @@ AGENT-REVIEW provides feedback → Agents fix issues → Re-review
 
 | Task ID | Agent | Description | Duration | Blocking | Status |
 |---------|-------|-------------|----------|----------|--------|
-| **T3.8** | FRONT | Setup React + TypeScript project (Vite) | 0.5 day | BLOCKS T3.9 | 🔴 TODO |
+| **T3.8** | FRONT | Setup Angular 20 + TypeScript project (Angular CLI) | 0.5 day | BLOCKS T3.9 | 🔴 TODO |
 | **T3.9** | FRONT | Create API client service (Axios) | 0.5 day | BLOCKS T3.10 | 🔴 TODO |
 | **T3.10** | FRONT | Implement ItemSelector component | 1 day | BLOCKS T3.11 | 🔴 TODO |
 | **T3.11** | FRONT | Implement PriceChart component (Recharts) | 2 days | BLOCKS T3.12 | 🔴 TODO |
@@ -450,7 +450,7 @@ AGENT-REVIEW provides feedback → Agents fix issues → Re-review
 | **T3.16** | FRONT | Create production build | 0.5 day | BLOCKS deployment | 🔴 TODO |
 
 **Dependencies:** T2.7-T2.10 (AGENT-API REST endpoints)
-**Output:** React frontend application
+**Output:** Angular 20 frontend application
 **Timeline:** 8 days
 
 ---
@@ -673,7 +673,7 @@ wait
 
 ### 9.2 Key Changes from v1.0
 
-✅ **Added AGENT-FRONT** - Handles React visualization (8 tasks)
+✅ **Added AGENT-FRONT** - Handles Angular 20 visualization (8 tasks)
 ✅ **Added AGENT-REVIEW** - Quality gates after each wave (5 review tasks)
 ✅ **Added AGENT-SECURITY** - Security audit before deployment (5 tasks)
 ❌ **Removed AGENT-BACK** - Redundant with existing backend agents
@@ -715,7 +715,7 @@ wait
 ### 10.2 Questions for You
 
 1. **Approve this agent roster?** (12 agents)
-2. **Frontend technology preference?** (React + Recharts or alternatives?)
+2. **Frontend technology preference?** (Angular 20 + Angular Material confirmed)
 3. **Review gate strictness?** (Block on any issue vs. warning-only?)
 4. **Security depth?** (Basic audit or comprehensive pentest?)
 5. **Ready to launch Wave 0?**
